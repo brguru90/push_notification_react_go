@@ -8,14 +8,6 @@ const check = () => {
 }
 const registerServiceWorker = async () => {
 
-    // try {
-    //     const registration = await navigator.serviceWorker.ready
-    //     const t=registration.unregister()
-    //     console.log(t)
-    // } catch (error) {
-    //     console.log(error)
-    // }
-
     const swRegistration = await navigator.serviceWorker.register(process.env.PUBLIC_URL + '/notification_service.js')
     return swRegistration
 }

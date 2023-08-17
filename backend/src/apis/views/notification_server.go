@@ -48,7 +48,7 @@ func SendNotificationToMySelf(c *gin.Context) {
 	// privateKey, publicKey, err := webpush.GenerateVAPIDKeys()
 	uid, uid_err := c.Cookie("uid")
 	if uid_err != nil {
-		c.String(http.StatusOK, "not yet subscribed")
+		c.String(http.StatusInternalServerError, "not yet subscribed")
 		return
 	}
 
@@ -64,7 +64,7 @@ func SendNotificationToMySelf(c *gin.Context) {
 	})
 	if err != nil {
 		fmt.Println(err)
-		c.String(http.StatusOK, "error in sending notification")
+		c.String(http.StatusInternalServerError, "error in sending notification")
 		return
 	}
 	defer resp.Body.Close()

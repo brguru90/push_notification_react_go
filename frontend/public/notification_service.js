@@ -22,7 +22,14 @@ const saveSubscription = async subscription => {
     })
     return response.json()
 }
-self.addEventListener('activate', async () => {
+
+addEventListener('install', installEvent => {
+    console.log({installEvent})
+  });
+
+
+self.addEventListener('activate', async (event) => {
+    console.log("service worker activated")
     // This will be called only once when the service worker is activated.
     try {
         const applicationServerKey = urlB64ToUint8Array(
@@ -33,6 +40,7 @@ self.addEventListener('activate', async () => {
         console.log({subscription})
         const response = await saveSubscription(subscription)
         console.log(response)
+        console.log("success fully registered")
     } catch (err) {
         console.log('Error', err)
     }
