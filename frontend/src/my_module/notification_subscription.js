@@ -1,11 +1,11 @@
 let messageChannel = new MessageChannel()
 const onMessageCallbacks = {}
 
-const setMessageChannel = (ch) => messageChannel = ch
+const setMessageChannel = (ch) => (messageChannel = ch)
 
 const startChannel = () => {
     if (!navigator.serviceWorker.controller) return
-    navigator.serviceWorker.controller.postMessage({ type: "PORT_INITIALIZATION" }, [
+    navigator.serviceWorker.controller.postMessage({type: "PORT_INITIALIZATION"}, [
         messageChannel.port2,
     ])
 }
@@ -21,7 +21,7 @@ const check = () => {
 const registerServiceWorker = async () => {
     const swRegistration = await navigator.serviceWorker.register(
         process.env.PUBLIC_URL + "/notification_service.js",
-        { scope: "/" }
+        {scope: "/"}
     )
     return swRegistration
 }
@@ -44,9 +44,9 @@ const init_subscription = async () => {
         // console.log(navigator.serviceWorker.controller,evt)
         startChannel()
     })
-    const swRegistration = await registerServiceWorker()
     const permission = await requestNotificationPermission()
-    console.log({ swRegistration, permission })
+    const swRegistration = await registerServiceWorker()
+    console.log({swRegistration, permission})
     return {
         swRegistration,
         permission,
@@ -60,7 +60,7 @@ const unregister_service_worker = () => {
             .getRegistrations()
             .then((registrations) => {
                 registrations.forEach((registration) => {
-                    console.log({ registration })
+                    console.log({registration})
                     registration.unregister()
                 })
                 resolve()
@@ -74,13 +74,15 @@ const get_registered_service_worker = () => {
 }
 
 messageChannel.port1.onmessage = (event) => {
-    console.log({ "service_worker onmessage": event })
-    Object.entries(onMessageCallbacks).map(([key, cb]) => setImmediate(() => cb(event, key)))
+    console.log({"service_worker onmessage": event})
+    Object.entries(onMessageCallbacks).map(([key, cb]) =>
+        setImmediate(() => cb(event, key))
+    )
     // Process message
-};
+}
 
 const sendMessage = (data) => {
-    navigator.serviceWorker.controller.postMessage({ type: "MSG", data }, [
+    navigator.serviceWorker.controller.postMessage({type: "MSG", data}, [
         messageChannel.port2,
     ])
 }
