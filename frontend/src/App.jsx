@@ -4,11 +4,15 @@ import {
     init_subscription,
     unregister_service_worker,
     get_registered_service_worker,
+    onMessageCallbacks,
 } from "./my_module/notification_subscription"
 
 export default function App() {
     const [regCount, setRegCount] = useState(0)
     const inputRef = useRef()
+    const msgEventBinded = useRef(false)
+
+    const [broadCastData, setBroadCastData] = useState([])
 
     const updateRegCount = () => {
         get_registered_service_worker().then((reg) => {
@@ -16,20 +20,33 @@ export default function App() {
         })
     }
 
-    useEffect(() => {
-        updateRegCount()
-    }, [])
-
-    const register_service_worker = async () => {
-        const {messageChannel} = await init_subscription()
-        messageChannel.port1.onmessage = (event) => {
+    const listenForMessageEvent = () => {
+        if (msgEventBinded.current) return
+        onMessageCallbacks["reg"] = (event) => {
             console.log({service_worker: event})
             if (event?.data?.type == "MSG") {
                 alert(JSON.stringify(event?.data))
             }
             updateRegCount()
         }
+        // listening from tab broad cast
+        navigator.serviceWorker.addEventListener("message", (event) => {
+            setBroadCastData((e) => {
+                return [event?.data?.data, ...e]
+            })
+        })
+        msgEventBinded.current = true
     }
+
+    const register_service_worker = async () => {
+        await init_subscription()
+        listenForMessageEvent()
+    }
+
+    useEffect(() => {
+        updateRegCount()
+        listenForMessageEvent()
+    }, [])
 
     const sendNotification = () => {
         const url = "/api/send_notification_to_myself/?msg=" + inputRef.current.value
@@ -62,6 +79,13 @@ export default function App() {
             <br />
             <input type="text" ref={inputRef} />
             <button onClick={sendNotification}>Send</button>
+            <br />
+            <br />
+            <b>Tab broadcast data</b>
+            <br />
+            {broadCastData.map((e) => (
+                <p key={e}>{JSON.stringify(e)}</p>
+            ))}
         </div>
     )
 }

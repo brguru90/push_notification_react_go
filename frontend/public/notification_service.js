@@ -3,16 +3,29 @@ let communicationPort;
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'PORT_INITIALIZATION') {
-    communicationPort = event.ports[0];
-    console.log("communication PORT_INITIALIZATION")
-    communicationPort.postMessage({type: 'STATUS',data:"init success"});
-  } else{
+    if (!communicationPort) {
+      // get reference of sender
+      communicationPort = event.ports[0];
+      console.log("communication PORT_INITIALIZATION")
+      communicationPort.postMessage({ type: 'STATUS', data: "init success" });
+    }
+  } else {
     console.log("service worker got", event.data)
   }
 });
 
-const sendMessage=(data)=>{
-  communicationPort.postMessage({type: 'MSG',data});
+const sendMessage = (data) => {
+  // sending message to sender or tab from where it registered
+  communicationPort.postMessage({ type: 'MSG', data });
+}
+
+const broadcastToTab = (data) => {
+  // broad cast to all clients[opened tabs]
+  clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({ type: 'TAB_BROADCAST', data })
+    })
+  })
 }
 
 const urlB64ToUint8Array = base64String => {
@@ -72,6 +85,7 @@ self.addEventListener('activate', async (event) => {
 self.addEventListener("push", function (event) {
   if (event.data) {
     console.log("Push event!! ", event.data.text());
+    broadcastToTab(["Push event!! ", event.data.text()])
     showLocalNotification("Test notification", event.data.text(), self.registration);
   } else {
     console.log("Push event but no data");
