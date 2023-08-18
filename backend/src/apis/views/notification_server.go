@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// currently the subscription in memory
+// but in particle application it should be in database
 var notification_subscriptions map[string][]byte = make(map[string][]byte)
 
 func SubscribeToNotification(c *gin.Context) {

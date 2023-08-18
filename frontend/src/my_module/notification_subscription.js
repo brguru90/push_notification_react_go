@@ -1,17 +1,18 @@
-
-const messageChannel = new MessageChannel();
+const messageChannel = new MessageChannel()
 
 const check = () => {
-    if (!('serviceWorker' in navigator)) {
-        throw new Error('No Service Worker support!')
+    if (!("serviceWorker" in navigator)) {
+        throw new Error("No Service Worker support!")
     }
-    if (!('PushManager' in window)) {
-        throw new Error('No Push API Support!')
+    if (!("PushManager" in window)) {
+        throw new Error("No Push API Support!")
     }
 }
 const registerServiceWorker = async () => {
-
-    const swRegistration = await navigator.serviceWorker.register(process.env.PUBLIC_URL + '/notification_service.js', { scope: '/' })
+    const swRegistration = await navigator.serviceWorker.register(
+        process.env.PUBLIC_URL + "/notification_service.js",
+        {scope: "/"}
+    )
     return swRegistration
 }
 const requestNotificationPermission = async () => {
@@ -20,8 +21,8 @@ const requestNotificationPermission = async () => {
     // granted: user has accepted the request
     // default: user has dismissed the notification permission popup by clicking on x
     // denied: user has denied the request.
-    if (permission !== 'granted') {
-        throw new Error('Permission not granted for Notification')
+    if (permission !== "granted") {
+        throw new Error("Permission not granted for Notification")
     }
 }
 const init_subscription = async () => {
@@ -31,13 +32,13 @@ const init_subscription = async () => {
     navigator.serviceWorker.addEventListener("controllerchange", () => {
         // console.log("controller changed");
         // console.log(navigator.serviceWorker.controller,evt)
-        navigator.serviceWorker.controller.postMessage({ type: 'PORT_INITIALIZATION' }, [
+        navigator.serviceWorker.controller.postMessage({type: "PORT_INITIALIZATION"}, [
             messageChannel.port2,
-        ]);
-    });
+        ])
+    })
     const swRegistration = await registerServiceWorker()
     const permission = await requestNotificationPermission()
-    console.log({ swRegistration, permission })
+    console.log({swRegistration, permission})
     return {
         swRegistration,
         permission,
@@ -47,33 +48,32 @@ const init_subscription = async () => {
 
 const unregister_service_worker = () => {
     return new Promise((resolve, reject) => {
-        navigator.serviceWorker.getRegistrations()
-            .then(registrations => {
-                registrations.forEach(registration => {
-                    console.log({ registration })
-                    registration.unregister();
+        navigator.serviceWorker
+            .getRegistrations()
+            .then((registrations) => {
+                registrations.forEach((registration) => {
+                    console.log({registration})
+                    registration.unregister()
                 })
                 resolve()
-            }).catch(reject);
+            })
+            .catch(reject)
     })
 }
 
-const get_registered_service_worker=()=>{
+const get_registered_service_worker = () => {
     return navigator.serviceWorker.getRegistrations()
 }
-
-
 
 // messageChannel.port1.onmessage = (event) => {
 //     console.log({ "service_worker onmessage": event })
 //     // Process message
 // };
 
-
 const sendMessage = (data) => {
-    navigator.serviceWorker.controller.postMessage({ type: 'MSG', data }, [
+    navigator.serviceWorker.controller.postMessage({type: "MSG", data}, [
         messageChannel.port2,
-    ]);
+    ])
 }
 
 export {

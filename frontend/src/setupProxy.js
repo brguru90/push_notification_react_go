@@ -17,17 +17,16 @@ const keepAliveAgent = new http.Agent({keepAlive: true})
 //     )
 // }
 
-
-const { createProxyMiddleware } = require("http-proxy-middleware");
+const {createProxyMiddleware} = require("http-proxy-middleware")
 
 module.exports = function (app) {
-  app.use(
-    "/api",
-    createProxyMiddleware({
-      target: "http://localhost:8000",
-      changeOrigin: true,
-      secure: false,
-      agent: keepAliveAgent,
-    })
-  );
+    app.use(
+        "/api",
+        createProxyMiddleware({
+            target: "http://localhost:8000",
+            changeOrigin: true,
+            secure: false,
+            agent: keepAliveAgent,
+        })
+    )
 }
