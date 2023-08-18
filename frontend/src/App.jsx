@@ -1,43 +1,67 @@
-import React, { useEffect, useRef } from "react"
+import React, {useEffect, useRef, useState} from "react"
 import "./App.scss"
-import { init_subscription } from "./my_module/notification_subscription"
+import {
+    init_subscription,
+    unregister_service_worker,
+    get_registered_service_worker,
+} from "./my_module/notification_subscription"
 
 export default function App() {
-    let count = useRef(0)
+    const [regCount, setRegCount] = useState(0)
+    const inputRef = useRef()
+
+    const updateRegCount = () => {
+        get_registered_service_worker().then((reg) => {
+            setRegCount(reg.length)
+        })
+    }
+
     useEffect(() => {
-        if (count.current == 1) {
-            navigator.serviceWorker.addEventListener("message", (event) => {
-                alert(JSON.stringify(event.data))
-              });
-            navigator.serviceWorker.onmessage = (event) => {
-                alert(JSON.stringify(event.data))
-            };
-        }
-        count.current++
+        updateRegCount()
     }, [])
 
+    const register_service_worker = async () => {
+        const {messageChannel} = await init_subscription()
+        messageChannel.port1.onmessage = (event) => {
+            console.log({service_worker: event})
+            if (event?.data?.type == "MSG") {
+                alert(JSON.stringify(event?.data))
+            }
+            updateRegCount()
+        }
+    }
 
     const sendNotification = () => {
         const url = "/api/send_notification_to_myself/?msg=" + inputRef.current.value
-        console.log({ url })
+        console.log({url})
         fetch(url)
-            .then(res => res.text())
-            .then(res => {
+            .then((res) => res.text())
+            .then((res) => {
                 console.log(res)
-                // if(res.status!=200){
-                //     alert(JSON.stringify(res))
-                // }
             })
-            .catch(e => alert(JSON.stringify(e)))
+            .catch((e) => alert(JSON.stringify(e)))
     }
 
-    const inputRef = useRef()
-
-    return <div className="App">
-
-        <button onClick={init_subscription}>Test register</button><br />
-        <input type="text" ref={inputRef} /><button onClick={sendNotification}>Send</button>
-
-
-    </div>
+    return (
+        <div className="App">
+            <b>Test notification</b>
+            <br />
+            <i>Registered count: {regCount}</i>
+            <br />
+            <button onClick={register_service_worker}>register</button>
+            <button
+                onClick={() => {
+                    unregister_service_worker().then(() => {
+                        updateRegCount()
+                        window.location.reload()
+                    })
+                }}
+            >
+                unregister
+            </button>
+            <br />
+            <input type="text" ref={inputRef} />
+            <button onClick={sendNotification}>Send</button>
+        </div>
+    )
 }

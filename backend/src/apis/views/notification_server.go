@@ -21,7 +21,7 @@ func SubscribeToNotification(c *gin.Context) {
 			mymodule.SetCookie(c,
 				"uid",
 				uid,
-				time.Now().UnixMilli()+5*60*1000,
+				time.Now().UnixMilli()+10*60*1000,
 				true,
 			)
 		}
@@ -67,6 +67,17 @@ func SendNotificationToMySelf(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "error in sending notification")
 		return
 	}
+	// go func() {
+	// 	for i := 0; i < 10; i++ {
+	// 		webpush.SendNotification([]byte(c.DefaultQuery("msg", "Its default message")), s, &webpush.Options{
+	// 			Subscriber:      "example@example.com",
+	// 			VAPIDPublicKey:  "BJ5IxJBWdeqFDJTvrZ4wNRu7UY2XigDXjgiUBYEYVXDudxhEs0ReOJRBcBHsPYgZ5dyV8VjyqzbQKS8V7bUAglk",
+	// 			VAPIDPrivateKey: "ERIZmc5T5uWGeRxedxu92k3HnpVwy_RCnQfgek1x2Y4",
+	// 			TTL:             30,
+	// 		})
+	// 		time.Sleep(time.Second * 5)
+	// 	}
+	// }()
 	defer resp.Body.Close()
 	c.String(http.StatusOK, "sent")
 }

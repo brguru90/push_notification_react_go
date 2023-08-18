@@ -1,3 +1,6 @@
+
+const messageChannel = new MessageChannel();
+
 const check = () => {
     if (!('serviceWorker' in navigator)) {
         throw new Error('No Service Worker support!')
@@ -8,7 +11,7 @@ const check = () => {
 }
 const registerServiceWorker = async () => {
 
-    const swRegistration = await navigator.serviceWorker.register(process.env.PUBLIC_URL + '/notification_service.js')
+    const swRegistration = await navigator.serviceWorker.register(process.env.PUBLIC_URL + '/notification_service.js', { scope: '/' })
     return swRegistration
 }
 const requestNotificationPermission = async () => {
@@ -24,25 +27,58 @@ const requestNotificationPermission = async () => {
 const init_subscription = async () => {
     console.log("init_subscription...")
     check()
-    unregister_service_worker()
+    // await unregister_service_worker()
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        // console.log("controller changed");
+        // console.log(navigator.serviceWorker.controller,evt)
+        navigator.serviceWorker.controller.postMessage({ type: 'PORT_INITIALIZATION' }, [
+            messageChannel.port2,
+        ]);
+    });
     const swRegistration = await registerServiceWorker()
     const permission = await requestNotificationPermission()
+    console.log({ swRegistration, permission })
     return {
         swRegistration,
         permission,
+        messageChannel,
     }
 }
 
 const unregister_service_worker = () => {
-    navigator.serviceWorker.getRegistrations()
-        .then(registrations => {
-            registrations.forEach(registration => {
-                registration.unregister();
-            })
-        });
+    return new Promise((resolve, reject) => {
+        navigator.serviceWorker.getRegistrations()
+            .then(registrations => {
+                registrations.forEach(registration => {
+                    console.log({ registration })
+                    registration.unregister();
+                })
+                resolve()
+            }).catch(reject);
+    })
+}
+
+const get_registered_service_worker=()=>{
+    return navigator.serviceWorker.getRegistrations()
+}
+
+
+
+// messageChannel.port1.onmessage = (event) => {
+//     console.log({ "service_worker onmessage": event })
+//     // Process message
+// };
+
+
+const sendMessage = (data) => {
+    navigator.serviceWorker.controller.postMessage({ type: 'MSG', data }, [
+        messageChannel.port2,
+    ]);
 }
 
 export {
     init_subscription,
-    unregister_service_worker
+    unregister_service_worker,
+    sendMessage,
+    get_registered_service_worker,
 }
